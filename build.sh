@@ -14,7 +14,7 @@ REV=$(tput smso)
 
 ARCH=none
 
-PACKAGES="git squashfs-tools kpartx multistrap qemu-user-static samba debootstrap parted dosfstools qemu binfmt-support qemu-utils docker.io md5deep"
+PACKAGES="git squashfs-tools kpartx multistrap qemu-user-static samba debootstrap parted dosfstools qemu binfmt-support qemu-utils md5deep"
 
 #Help function
 function HELP {
@@ -159,6 +159,10 @@ if [ -n "$BUILD" ]; then
 
   mkdir "build/$BUILD"
   mkdir "build/$BUILD/root"
+  mkdir -p "build/$BUILD/root/etc/apt/trusted.gpg.d"
+apt-key --keyring "build/$BUILD/root/etc/apt/trusted.gpg.d/debian.gpg"  adv --batch --keyserver hkp://keyserver.ubuntu.com:80 --recv-key 7638D0442B90D010
+apt-key --keyring "build/$BUILD/root/etc/apt/trusted.gpg.d/debian.gpg"  adv --batch --keyserver hkp://keyserver.ubuntu.com:80 --recv-key CBF8D6FD518E17E1
+apt-key --keyring "build/$BUILD/root/etc/apt/trusted.gpg.d/debian.gpg"  adv --batch --keyserver hkp://keyserver.ubuntu.com:80 --recv-key 9165938D90FDDD2E
   multistrap -a "$ARCH" -f "$CONF"
   if [ ! "$BUILD" = x86 ]; then
     echo "Build for arm/armv7/armv8 platform, copying qemu"
@@ -173,10 +177,11 @@ if [ -n "$BUILD" ]; then
   echo 'Cloning Volumio Node Backend'
   if [ -n "$PATCH" ]; then
       echo "Cloning Volumio with all its history"
-      git clone https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+      git clone https://github.com/Dangku/Volumio2.git build/$BUILD/root/volumio
   else
-      git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+      git clone --depth 1 -b master --single-branch https://github.com/Dangku/Volumio2.git build/$BUILD/root/volumio
   fi
+
   echo "Pre-commit hooks"
   echo '#!/bin/sh
   # Pre-commit hook, uncomment when finished linting all codebase
@@ -238,6 +243,10 @@ case "$DEVICE" in
   pi) echo 'Writing Raspberry Pi Image File'
     check_os_release "arm" "$VERSION" "$DEVICE"
     sh scripts/raspberryimage.sh -v "$VERSION" -p "$PATCH"
+    ;;
+  bananapim5) echo 'Writing Bananapi-M5 Image File'
+    check_os_release "armv7" "$VERSION" "$DEVICE"
+    sh scripts/bananapim5image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   cuboxi) echo 'Writing Cubox-i Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"
